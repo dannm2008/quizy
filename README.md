@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trivilocura</title>
+  <title>Trivilocura 💜</title>
   <style>
     :root {
-      --morado-principal: #9575cd;
-      --rosa: #f48fb1;
-      --naranja: #ff9e64;
+      --morado: #9b5de5;
+      --rosa: #f15bb5;
+      --naranja: #f9c74f;
       --blanco: #fff;
     }
 
@@ -20,13 +20,22 @@
     }
 
     body {
-      background: linear-gradient(135deg, var(--morado-principal), var(--rosa), var(--naranja));
+      background: linear-gradient(135deg, var(--morado), var(--rosa), var(--naranja));
+      background-size: 400% 400%;
+      animation: fondoMov 8s ease infinite;
       color: var(--blanco);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       text-align: center;
+      overflow: hidden;
+    }
+
+    @keyframes fondoMov {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .pantalla {
@@ -35,13 +44,13 @@
       max-width: 600px;
       background: rgba(255,255,255,0.1);
       border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      padding: 25px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.4);
     }
 
     .pantalla.activa {
       display: block;
-      animation: aparecer 0.5s ease;
+      animation: aparecer 0.6s ease;
     }
 
     @keyframes aparecer {
@@ -74,11 +83,12 @@
       border-radius: 25px;
       margin-top: 15px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
 
     .boton:hover {
       background: var(--naranja);
+      transform: scale(1.05);
     }
 
     #mensaje-loco {
@@ -96,6 +106,20 @@
       pointer-events: none;
       z-index: 999;
     }
+
+    select {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 15px;
+      padding: 10px;
+      color: var(--blanco);
+      font-size: 1em;
+      margin-top: 15px;
+      text-align: center;
+    }
+    option {
+      color: black;
+    }
   </style>
 </head>
 <body>
@@ -104,6 +128,15 @@
   <!-- Pantalla de inicio -->
   <div class="pantalla activa" id="pantallaInicio">
     <h1>🎉 Trivilocura 🎉</h1>
+    <p>Elige una categoría para comenzar:</p>
+    <select id="categoriaSelect">
+      <option value="historia">📜 Historia</option>
+      <option value="ciencia">🔬 Ciencia</option>
+      <option value="cultura">🎭 Cultura General</option>
+      <option value="deportes">⚽ Deportes</option>
+      <option value="mixta">🎲 Mixta</option>
+    </select>
+    <br>
     <button class="boton" onclick="iniciarJuego()">Jugar</button>
   </div>
 
@@ -131,20 +164,37 @@
     const mensajeLoco = document.getElementById('mensaje-loco');
     const btnSiguiente = document.getElementById('btnSiguiente');
     const puntajeFinal = document.getElementById('puntajeFinal');
+    const categoriaSelect = document.getElementById('categoriaSelect');
 
-    let preguntas = [
-      { pregunta: "¿En qué año cayó el Imperio Romano de Occidente?", opciones: ["476 d.C.", "1492", "1453", "800 d.C."], correcta: 0 },
-      { pregunta: "¿Quién descubrió América?", opciones: ["Cristóbal Colón", "Américo Vespucio", "Leif Erikson", "Marco Polo"], correcta: 0 },
-      { pregunta: "¿En qué año comenzó la Primera Guerra Mundial?", opciones: ["1914", "1939", "1929", "1905"], correcta: 0 },
-      { pregunta: "¿Quién fue el primer presidente de los Estados Unidos?", opciones: ["George Washington", "Abraham Lincoln", "Thomas Jefferson", "Benjamin Franklin"], correcta: 0 },
-      { pregunta: "¿Qué civilización construyó Machu Picchu?", opciones: ["Inca", "Maya", "Azteca", "Olmeca"], correcta: 0 },
-      { pregunta: "¿En qué año se firmó la Declaración de Independencia de los Estados Unidos?", opciones: ["1776", "1812", "1789", "1492"], correcta: 0 },
-      { pregunta: "¿Quién pintó la Mona Lisa?", opciones: ["Leonardo da Vinci", "Miguel Ángel", "Rafael", "Botticelli"], correcta: 0 },
-      { pregunta: "¿Cuál es el planeta más grande del sistema solar?", opciones: ["Júpiter", "Saturno", "Neptuno", "Urano"], correcta: 0 },
-      { pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?", opciones: ["Miguel de Cervantes", "Lope de Vega", "Calderón de la Barca", "Góngora"], correcta: 0 },
-      { pregunta: "¿Qué país tiene forma de bota?", opciones: ["Italia", "España", "Francia", "Grecia"], correcta: 0 }
-    ];
+    // 🎯 Base de preguntas por categoría
+    const categorias = {
+      historia: [
+        { pregunta: "¿En qué año cayó el Imperio Romano de Occidente?", opciones: ["476 d.C.", "1492", "1453", "800 d.C."], correcta: 0 },
+        { pregunta: "¿Quién descubrió América?", opciones: ["Cristóbal Colón", "Américo Vespucio", "Leif Erikson", "Marco Polo"], correcta: 0 },
+        { pregunta: "¿En qué año comenzó la Primera Guerra Mundial?", opciones: ["1914", "1939", "1929", "1905"], correcta: 0 },
+        { pregunta: "¿Cuándo terminó la Segunda Guerra Mundial?", opciones: ["1945", "1939", "1950", "1960"], correcta: 0 }
+      ],
+      ciencia: [
+        { pregunta: "¿Cuál es el planeta más grande del sistema solar?", opciones: ["Júpiter", "Saturno", "Neptuno", "Urano"], correcta: 0 },
+        { pregunta: "¿Qué gas respiramos para vivir?", opciones: ["Oxígeno", "Hidrógeno", "Nitrógeno", "Dióxido de carbono"], correcta: 0 },
+        { pregunta: "¿Qué órgano bombea la sangre?", opciones: ["Corazón", "Pulmones", "Hígado", "Riñón"], correcta: 0 },
+        { pregunta: "¿Cuál es el hueso más largo del cuerpo humano?", opciones: ["Fémur", "Húmero", "Tibia", "Peroné"], correcta: 0 }
+      ],
+      cultura: [
+        { pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?", opciones: ["Miguel de Cervantes", "Lope de Vega", "Calderón de la Barca", "Góngora"], correcta: 0 },
+        { pregunta: "¿Qué país tiene forma de bota?", opciones: ["Italia", "España", "Francia", "Grecia"], correcta: 0 },
+        { pregunta: "¿Quién pintó la Mona Lisa?", opciones: ["Leonardo da Vinci", "Miguel Ángel", "Rafael", "Botticelli"], correcta: 0 },
+        { pregunta: "¿Qué civilización construyó Machu Picchu?", opciones: ["Inca", "Maya", "Azteca", "Olmeca"], correcta: 0 }
+      ],
+      deportes: [
+        { pregunta: "¿Cuántos jugadores tiene un equipo de fútbol?", opciones: ["11", "9", "7", "10"], correcta: 0 },
+        { pregunta: "¿En qué deporte se usa una raqueta?", opciones: ["Tenis", "Golf", "Baloncesto", "Natación"], correcta: 0 },
+        { pregunta: "¿Qué país ganó el Mundial 2014?", opciones: ["Alemania", "Brasil", "Argentina", "España"], correcta: 0 },
+        { pregunta: "¿Dónde se celebraron los JJ.OO. de 2016?", opciones: ["Río de Janeiro", "Tokio", "Londres", "Pekín"], correcta: 0 }
+      ]
+    };
 
+    let preguntas = [];
     let preguntaActual = 0;
     let puntuacion = 0;
     let opcionesActuales = [];
@@ -152,6 +202,14 @@
     function iniciarJuego() {
       puntuacion = 0;
       preguntaActual = 0;
+      const seleccion = categoriaSelect.value;
+
+      if (seleccion === "mixta") {
+        preguntas = Object.values(categorias).flat().sort(() => Math.random() - 0.5).slice(0, 10);
+      } else {
+        preguntas = categorias[seleccion];
+      }
+
       cambiarPantalla(pantallaJuego);
       mostrarPregunta();
     }
