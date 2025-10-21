@@ -10,7 +10,6 @@
       --rosa: #f48fb1;
       --naranja: #ff9e64;
       --blanco: #fff;
-      --negro: #212121;
     }
 
     * {
@@ -42,22 +41,16 @@
 
     .pantalla.activa {
       display: block;
-      animation: aparecer 0.6s ease;
+      animation: aparecer 0.5s ease;
     }
 
     @keyframes aparecer {
-      from { opacity: 0; transform: scale(0.95); }
+      from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
-    }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 15px;
     }
 
     .opcion {
       background: rgba(255,255,255,0.2);
-      border: 2px solid transparent;
       border-radius: 12px;
       margin: 10px 0;
       padding: 10px;
@@ -70,13 +63,8 @@
       transform: scale(1.03);
     }
 
-    .correcta {
-      background: #4caf50 !important;
-    }
-
-    .incorrecta {
-      background: #e53935 !important;
-    }
+    .correcta { background: #4caf50 !important; }
+    .incorrecta { background: #e53935 !important; }
 
     .boton {
       background: var(--rosa);
@@ -94,9 +82,8 @@
     }
 
     #mensaje-loco {
-      font-size: 1.4em;
+      font-size: 1.3em;
       margin-top: 10px;
-      color: #fff;
       text-shadow: 0 0 5px #000;
     }
 
@@ -109,7 +96,6 @@
       pointer-events: none;
       z-index: 999;
     }
-
   </style>
 </head>
 <body>
@@ -161,6 +147,7 @@
 
     let preguntaActual = 0;
     let puntuacion = 0;
+    let opcionesActuales = [];
 
     function iniciarJuego() {
       puntuacion = 0;
@@ -176,16 +163,20 @@
       let pregunta = preguntas[preguntaActual];
       preguntaTexto.textContent = pregunta.pregunta;
 
-      // Mezclar las opciones aleatoriamente
+      // Mezclar opciones
       const indices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+      opcionesActuales = indices.map(i => ({
+        texto: pregunta.opciones[i],
+        esCorrecta: i === pregunta.correcta
+      }));
 
       opcionesContenedor.innerHTML = "";
-      indices.forEach(i => {
-        const opcion = document.createElement("div");
-        opcion.className = "opcion";
-        opcion.textContent = pregunta.opciones[i];
-        opcion.onclick = () => seleccionarOpcion(i);
-        opcionesContenedor.appendChild(opcion);
+      opcionesActuales.forEach((opcion, i) => {
+        const div = document.createElement("div");
+        div.className = "opcion";
+        div.textContent = opcion.texto;
+        div.onclick = () => seleccionarOpcion(i);
+        opcionesContenedor.appendChild(div);
       });
     }
 
@@ -193,22 +184,18 @@
       const opciones = document.querySelectorAll(".opcion");
       opciones.forEach(op => op.style.pointerEvents = "none");
 
-      let pregunta = preguntas[preguntaActual];
-      if (i === pregunta.correcta) {
+      if (opcionesActuales[i].esCorrecta) {
         opciones[i].classList.add("correcta");
         puntuacion += 10;
-        mostrarMensaje("¡Correcto! 🎉");
+        mensajeLoco.textContent = "¡Correcto! 🎉";
       } else {
         opciones[i].classList.add("incorrecta");
-        opciones[pregunta.correcta].classList.add("correcta");
-        mostrarMensaje("¡Incorrecto! 😅");
+        const correctaIndex = opcionesActuales.findIndex(o => o.esCorrecta);
+        opciones[correctaIndex].classList.add("correcta");
+        mensajeLoco.textContent = "¡Incorrecto! 😅";
       }
 
       btnSiguiente.classList.remove('oculto');
-    }
-
-    function mostrarMensaje(texto) {
-      mensajeLoco.textContent = texto;
     }
 
     function siguientePregunta() {
@@ -221,11 +208,8 @@
     }
 
     function terminarJuego() {
-      puntajeFinal.textContent = `Tu puntuación: ${puntuacion} puntos`;
-      if (puntuacion >= 70) {
-        crearConfeti();
-        mostrarMensaje("¡Excelente trabajo! 🏆");
-      }
+      puntajeFinal.textContent = `Tu puntuación final: ${puntuacion} puntos`;
+      if (puntuacion >= 70) crearConfeti();
       cambiarPantalla(pantallaResultados);
     }
 
